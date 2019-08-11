@@ -1,0 +1,69 @@
+#!/usr/bin/env php
+<?php
+/**
+ * @file
+ * Wrapper to load phpcs and prompt for asking if automatic fixes should be applied using phpcbf.
+ */
+
+$_colors = [
+  'green' => "\e[0;32m",
+  'red' => "\e[0;31m",
+  'default' => "\e[0;0m",
+];
+define('VENDOR_DIR', dirname(dirname(__FILE__)));
+
+/**
+ * Simple wrapper to output success messages.
+ *
+ * @param string $msg
+ *   The success message.
+ */
+function success($msg) {
+  global $_colors;
+  echo "\n";
+  echo "${_colors['green']}${msg}${_colors['default']}";
+}
+
+/**
+ * Simple wrapper to output error messages.
+ *
+ * @param string $msg
+ *   The error message.
+ */
+function error($msg) {
+  global $_colors;
+  echo "\n";
+  echo "${_colors['red']}${msg}${_colors['default']}";
+  exit(1);
+}
+
+/**
+ * Wrapper function to first load phpcs and if phpcs reports it can do automatic fixes, then execute phpcbf.
+ */
+function check_drupal_coding_standards($argv) {
+  global $_colors;
+  $parameters = implode(' ', array_slice($argv, 1));
+
+  exec(VENDOR_DIR . '/bin/phpcs' . ' ' . $parameters, $phpcs_log, $phpcs_return);
+  $phpcs_log = implode("\n", $phpcs_log);
+  echo $phpcs_log;
+
+  // Everything is fixed, exit successfully.
+  if ($phpcs_return === 0) {
+    success('Successfully passed PHP CodeSniffer validation.');
+    exit(0);
+  }
+
+  if (strpos($phpcs_log, 'PHPCBF CAN FIX') !== FALSE) {
+    $yn = readline("${_colors['green']}Fix these violations automatically? (y/n)${_colors['default']} ");
+    if ($yn === 'y') {
+      $phpcbf_log = shell_exec(VENDOR_DIR . "/bin/phpcbf $parameters");
+      echo $phpcbf_log;
+      error('Check the changes (there might be for example empty comments).');
+    }
+  }
+
+  error('Above violations need to be fixed manually.');
+}
+
+check_drupal_coding_standards($argv);

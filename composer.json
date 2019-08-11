@@ -1,0 +1,14 @@
+{
+    "name": "hkirsman/code-quality-phpcs",
+    "description": "PHP CodeSniffer wrapper that prompts y/n for automatic fixing (run phpcbf)",
+    "version": "0.1.0",
+    "bin": ["bin/phpcs_phpcbf"],
+    "type": "library",
+    "authors": [
+        {
+            "name": "Hannes Kirsman",
+            "email": "hkirsman@gmail.com"
+        }
+    ],
+    "require": {}
+}
